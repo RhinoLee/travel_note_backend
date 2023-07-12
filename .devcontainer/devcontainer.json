@@ -1,0 +1,6 @@
+{
+  "name": "Travel Note Backend",
+  "dockerComposeFile": "../../travel_note_configs/docker-compose.yml",
+  "service": "travel_note_backend",
+  "workspaceFolder": "/app"
+}
