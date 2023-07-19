@@ -1,0 +1,28 @@
+name: TravelNote-Frontend-Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to server
+        run: |
+          ssh -o StrictHostKeyChecking=no -T terry998877terry@34.80.219.26 \
+          "cd /home/travel_note/travel_note_backend && \
+          git pull && \
+          cd /home/travel_note/travel_note_configs && \
+          sudo docker-compose -f docker-compose.prod.yml up --build -d"

@@ -8,6 +8,7 @@ module.exports = {
     ecmaVersion: 'latest'
   },
   rules: {
-    'prettier/prettier': 'error'
+    'prettier/prettier': 'error',
+    'no-unused-vars': 'warn'
   }
 }
