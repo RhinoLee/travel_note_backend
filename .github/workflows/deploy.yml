@@ -1,4 +1,4 @@
-name: TravelNote-Frontend-Deploy
+name: TravelNote-Backend-Deploy
 
 on:
   push:
