@@ -1,10 +1,19 @@
-const { pool } = require('./app/database')
+const mysql2 = require('mysql2')
+const { MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST } = require('./config/server')
 const migration = require('mysql-migrations')
 
+const connection = mysql2.createPool({
+  host: MYSQL_HOST,
+  database: MYSQL_DATABASE,
+  user: MYSQL_USER,
+  password: MYSQL_PASSWORD,
+  connectionLimit: 10
+})
+
 migration.init(
-  pool,
+  connection,
   __dirname + '/migrations',
-  () => {
+  function () {
     console.log('finished running migrations')
   },
   ['--update-schema']
