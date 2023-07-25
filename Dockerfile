@@ -25,6 +25,8 @@ RUN npm install --only=production
 
 COPY . .
 
+RUN chmod +x ./start.sh
+
 EXPOSE 5002
 
-CMD [ "node", "./main.js" ]
+CMD ["./start.sh"]
