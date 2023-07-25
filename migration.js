@@ -1,8 +1,8 @@
-const { connectionPool } = require('./app/database')
+const { pool } = require('./app/database')
 const migration = require('mysql-migrations')
 
 migration.init(
-  connectionPool,
+  pool,
   __dirname + '/migrations',
   () => {
     console.log('finished running migrations')
