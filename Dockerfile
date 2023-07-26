@@ -19,11 +19,11 @@ WORKDIR /app
 COPY package*.json ./
 
 # 僅安裝 production 依賴
-RUN npm install
+RUN npm ci --only=production
 
-COPY /start.sh /start.sh
+COPY . .
 
-RUN chmod +x /start.sh
+RUN chmod +x ./start.sh
 
 EXPOSE 5002
 
