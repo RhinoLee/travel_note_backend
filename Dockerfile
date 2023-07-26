@@ -7,14 +7,9 @@ COPY package*.json ./
 
 RUN apt-get update && apt-get install -y git && npm install
 
-COPY start.sh /start.sh
-
-RUN chmod +x /start.sh
-
 EXPOSE 5002
 
-# CMD ["npx", "nodemon", "-L", "./main.js" ]
-CMD ["/start.sh"]
+CMD ["npx", "nodemon", "-L", "./main.js" ]
 
 # 階段 2: 生產環境
 FROM node:16-buster AS production
@@ -26,10 +21,10 @@ COPY package*.json ./
 # 僅安裝 production 依賴
 RUN npm install
 
-COPY start.sh /start.sh
+COPY /start.sh /start.sh
 
 RUN chmod +x /start.sh
 
 EXPOSE 5002
 
-CMD ["/start.sh"]
+CMD ["node" ,"./main.js"]

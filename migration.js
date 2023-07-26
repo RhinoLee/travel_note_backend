@@ -4,6 +4,7 @@ const migration = require('mysql-migrations')
 
 const connection = mysql2.createPool({
   host: MYSQL_HOST,
+  port: 3306,
   database: MYSQL_DATABASE,
   user: MYSQL_USER,
   password: MYSQL_PASSWORD,
