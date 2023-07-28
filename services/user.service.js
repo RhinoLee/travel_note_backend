@@ -46,11 +46,16 @@ class UserService {
 
       return values
     } catch (error) {
-      if (conn) await conn.rollback()
+      console.log(error)
       throw error
     } finally {
       if (conn) conn.release()
     }
+  }
+  async passwordCompare(password, hashedPassword) {
+    if (!password || !hashedPassword) return false
+    const match = await bcrypt.compare(password, hashedPassword)
+    return match
   }
 }
 

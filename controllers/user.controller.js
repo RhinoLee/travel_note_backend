@@ -1,4 +1,6 @@
 const userService = require('../services/user.service')
+const { PRIVATE_KEY } = require('../config/secret')
+const jwt = require('jsonwebtoken')
 
 class UserController {
   async create(ctx) {
@@ -15,6 +17,18 @@ class UserController {
         message: error
       }
     }
+  }
+
+  async login(ctx) {
+    // 1. get user data
+    const { id, name } = ctx.user
+    // 2. generate token
+    const token = jwt.sign({ id, name }, PRIVATE_KEY, {
+      expiresIn: 60 * 60 * 24,
+      algorithm: 'RS256'
+    })
+
+    ctx.body = { data: { id, name, token } }
   }
 }
 
