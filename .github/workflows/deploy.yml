@@ -21,6 +21,7 @@ jobs:
 
       - name: Setup keys
         run: |
+          mkdir -p ./config/keys
           echo ${{ secrets.JWT_PRIVATE_KEY }} > ./config/keys/private.key
           echo ${{ secrets.JWT_PUBLIC_KEY }} > ./config/keys/public.key
 
