@@ -35,4 +35,4 @@ jobs:
 
       - name: Copy keys to server
         run: |
-        scp ./config/keys/* terry998877terry@34.80.219.26:/home/travel_note/travel_note_configs/config/keys
+          scp ./config/keys/* terry998877terry@34.80.219.26:/home/travel_note/travel_note_configs/config/keys
