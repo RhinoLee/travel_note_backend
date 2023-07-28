@@ -32,3 +32,7 @@ jobs:
           git pull && \
           cd /home/travel_note/travel_note_configs && \
           sudo docker-compose -f docker-compose.prod.yml up --build -d"
+
+      - name: Copy keys to server
+        run: |
+        scp ./config/keys/* terry998877terry@34.80.219.26:/home/travel_note/travel_note_configs/config/keys
