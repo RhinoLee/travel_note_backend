@@ -21,8 +21,8 @@ jobs:
 
       - name: Setup keys
         run: |
-          echo ${{ secrets.JWT_PRIVATE_KEY }} > ./configs/keys/private.key
-          echo ${{ secrets.JWT_PUBLIC_KEY }} > ./configs/keys/public.key
+          echo ${{ secrets.JWT_PRIVATE_KEY }} > ./config/keys/private.key
+          echo ${{ secrets.JWT_PUBLIC_KEY }} > ./config/keys/public.key
 
       - name: Deploy to server
         run: |
