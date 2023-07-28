@@ -19,7 +19,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # 僅安裝 production 依賴
-RUN npm ci --only=production && npm install npm-run-all
+RUN npm ci --only=production
 
 COPY . .
 
