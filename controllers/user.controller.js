@@ -9,7 +9,7 @@ class UserController {
     try {
       const res = await userService.create(user)
       ctx.status = 201
-      ctx.body = { ...res }
+      ctx.body = { success: true, ...res }
     } catch (error) {
       ctx.status = 500
       ctx.body = {
@@ -28,7 +28,7 @@ class UserController {
       algorithm: 'RS256'
     })
 
-    ctx.body = { data: { id, name, token } }
+    ctx.body = { success: true, data: { id, name, token } }
   }
 }
 
