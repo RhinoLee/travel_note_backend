@@ -21,7 +21,8 @@
     "koa": "^2.14.2",
     "koa-bodyparser": "^4.4.1",
     "mysql-migrations": "^1.0.7",
-    "mysql2": "^3.5.2"
+    "mysql2": "^3.5.2",
+    "openai": "^3.3.0"
   },
   "devDependencies": {
     "eslint": "^8.45.0",
