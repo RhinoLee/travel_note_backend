@@ -1,16 +1,14 @@
 const { Configuration, OpenAIApi } = require('openai')
 const { OPENAI_API_KEY, OPENAI_ORG_KEY } = require('../config/secret')
+const orgBuf2Str = Buffer.from(OPENAI_ORG_KEY, 'utf8').toString()
+const apiBuf2Str = Buffer.from(OPENAI_API_KEY, 'utf8').toString()
 
 const configuration = new Configuration({
-  organization: OPENAI_ORG_KEY,
-  apiKey: OPENAI_API_KEY
+  organization: orgBuf2Str,
+  apiKey: apiBuf2Str
 })
 
-console.log('OPENAI_ORG_KEY', OPENAI_ORG_KEY)
-console.log('OPENAI_API_KEY', OPENAI_API_KEY)
-
 const openai = new OpenAIApi(configuration)
-
 class openAIController {
   async completion(ctx) {
     const { query } = ctx.request.body
