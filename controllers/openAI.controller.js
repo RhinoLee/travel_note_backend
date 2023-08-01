@@ -8,6 +8,8 @@ const configuration = new Configuration({
   apiKey: apiBuf2Str
 })
 
+console.log('configuration', configuration)
+
 const openai = new OpenAIApi(configuration)
 class openAIController {
   async completion(ctx) {
