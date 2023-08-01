@@ -4,8 +4,8 @@ const orgBuf2Str = Buffer.from(OPENAI_ORG_KEY, 'utf8').toString()
 const apiBuf2Str = Buffer.from(OPENAI_API_KEY, 'utf8').toString()
 
 const configuration = new Configuration({
-  organization: orgBuf2Str
-  // apiKey: apiBuf2Str
+  organization: orgBuf2Str,
+  apiKey: apiBuf2Str
 })
 
 const openai = new OpenAIApi(configuration)
