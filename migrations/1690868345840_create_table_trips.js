@@ -1,0 +1,16 @@
+module.exports = {
+  up: `
+    CREATE TABLE IF NOT EXISTS trips(
+      id INT PRIMARY KEY AUTO_INCREMENT,
+      user_id INT NOT NULL,
+      name VARCHAR(300) NOT NULL,
+      description VARCHAR(2000) DEFAULT NULL,
+      start_date TIMESTAMP NOT NULL,
+      end_date TIMESTAMP NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
+    );
+  `,
+  down: `DROP TABLE trips;`
+}

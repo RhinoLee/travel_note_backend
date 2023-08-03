@@ -1,0 +1,15 @@
+module.exports = {
+  up: `
+  CREATE TABLE IF NOT EXISTS destinations(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    place_id VARCHAR(255) NOT NULL,
+    lat DOUBLE NOT NULL,
+    lng DOUBLE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  );
+  `,
+  down: `DROP TABLE destinations;`
+}
