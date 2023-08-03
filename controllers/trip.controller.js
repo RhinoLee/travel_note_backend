@@ -49,6 +49,7 @@ class tripController {
         blobStream.end(buffer)
         imageUrl = await getImageUrl
       } catch (err) {
+        console.log('image upload err', err)
         ctx.body = {
           success: false,
           message: 'image upload failed'
