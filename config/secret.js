@@ -9,10 +9,14 @@ const OPENAI_API_KEY = fs
 const OPENAI_ORG_KEY = fs
   .readFileSync(path.resolve(__dirname, './keys/openai_org.key'), 'utf-8')
   .trim()
+const GCP_BUCKET_NAME = fs
+  .readFileSync(path.resolve(__dirname, './keys/gcp_bucket_name.key'), 'utf-8')
+  .trim()
 
 module.exports = {
   PRIVATE_KEY,
   PUBLIC_KEY,
   OPENAI_API_KEY,
-  OPENAI_ORG_KEY
+  OPENAI_ORG_KEY,
+  GCP_BUCKET_NAME
 }

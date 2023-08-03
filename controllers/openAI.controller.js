@@ -6,8 +6,6 @@ const configuration = new Configuration({
   apiKey: OPENAI_API_KEY
 })
 
-console.log('configuration', configuration)
-
 const openai = new OpenAIApi(configuration)
 class openAIController {
   async completion(ctx) {
