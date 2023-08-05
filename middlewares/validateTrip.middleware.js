@@ -20,7 +20,7 @@ const upload = multer({
 })
 
 const tripSchema = object({
-  trip_image: string().nullable(),
+  tripImage: string().nullable(),
   title: string().required(),
   startDate: date().required(),
   endDate: date().required().min(ref('startDate'))

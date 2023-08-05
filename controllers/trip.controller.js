@@ -2,6 +2,8 @@ const path = require('path')
 const { Storage } = require('@google-cloud/storage')
 const { v4: uuidv4 } = require('uuid')
 const { GCP_BUCKET_NAME } = require('../config/secret')
+const { GCP_STORAGE_URL } = require('../config/constants/providerConstants')
+const tripService = require('../services/trip.service')
 
 const sharp = require('sharp')
 
@@ -15,7 +17,7 @@ class tripController {
   async create(ctx) {
     const { title, startDate, endDate } = ctx.request.body
     const file = ctx.request.file
-    const userId = 'xxxUserId'
+    const { userId } = ctx
     // 待回傳的圖片網址（上傳 cloud storage 成功）
     let imageUrl = ''
 
@@ -38,7 +40,7 @@ class tripController {
 
         blobStream.on('finish', async () => {
           console.log('All data has been written')
-          const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`
+          const publicUrl = `${GCP_STORAGE_URL}/${bucket.name}/${blob.name}`
 
           resolve(publicUrl)
         })
@@ -48,19 +50,28 @@ class tripController {
         const buffer = await sharp(file.buffer).webp({ quality: 80 }).toBuffer()
         blobStream.end(buffer)
         imageUrl = await getImageUrl
+
+        const trip = await tripService.create({ userId, title, startDate, endDate, imageUrl })
+
+        ctx.body = {
+          success: true,
+          data: trip
+        }
       } catch (err) {
         console.log('image upload err', err)
+        // 建立資料失敗，刪除上傳的圖片
+        if (err === imageUrl) {
+          const filename = err.split(`${GCP_STORAGE_URL}/${GCP_BUCKET_NAME}/`)[1]
+          const file = bucket.file(filename)
+          if (file) file.delete()
+          console.log('Deleted file from Google Cloud Storage:', filename)
+        }
         ctx.body = {
           success: false,
-          message: 'image upload failed'
+          message: 'create trip failed'
         }
         return
       }
-    }
-
-    ctx.body = {
-      success: true,
-      data: { id: 'xxx', title, startDate, endDate, imageUrl }
     }
   }
 }
