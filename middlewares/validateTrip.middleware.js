@@ -8,7 +8,7 @@ const upload = multer({
     fileSize: 1024 * 1024 * 20 // 20MB
   },
   fileFilter: (req, file, cb) => {
-    console.log('file', file)
+    console.log('file xxx', file)
     if (!file) return cb(null, true)
     if (imageRegex.test(file.mimetype.toLowerCase())) {
       return cb(null, true)

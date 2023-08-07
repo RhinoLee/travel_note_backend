@@ -1,5 +1,4 @@
 function createValidationMiddleware(schema) {
-  console.log('schema', schema)
   return async (ctx, next) => {
     try {
       const validatedBody = await schema.validate(ctx.request.body)
