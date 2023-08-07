@@ -32,6 +32,30 @@ class TripService {
       if (conn) conn.release()
     }
   }
+  async getList({ userId, limit, offset }) {
+    let conn = null
+    try {
+      conn = await pool.getConnection()
+
+      const statement = `
+        SELECT id, name, image_url, start_date, end_date FROM trips 
+        WHERE user_id = ? ORDER BY start_date DESC
+        LIMIT ? OFFSET ?;
+      `
+      const [rows] = await conn.execute(statement, [userId, String(limit), String(offset)])
+
+      const totalSizeStatement = `SELECT COUNT(*) FROM trips WHERE user_id = ?`
+      const [[total]] = await conn.execute(totalSizeStatement, [userId])
+      const totalSize = total['COUNT(*)']
+
+      return { data: rows, pagination: { limit: Number(limit), offset, totalSize } }
+    } catch (err) {
+      console.log(err)
+      throw err
+    } finally {
+      if (conn) conn.release()
+    }
+  }
 }
 
 module.exports = new TripService()

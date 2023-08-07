@@ -74,6 +74,27 @@ class tripController {
       }
     }
   }
+  async list(ctx) {
+    const { limit, page } = ctx.query
+    const { userId } = ctx
+    try {
+      const offset = (page - 1) * limit
+      const { data, pagination } = await tripService.getList({ userId, limit, offset })
+      const totalPages = Math.ceil(pagination.totalSize / pagination.limit)
+      pagination.totalPages = totalPages
+      pagination.page = Number(page)
+      ctx.body = {
+        success: true,
+        data,
+        pagination
+      }
+    } catch (err) {
+      ctx.body = {
+        success: false,
+        message: 'get trips failed'
+      }
+    }
+  }
 }
 
 module.exports = new tripController()
