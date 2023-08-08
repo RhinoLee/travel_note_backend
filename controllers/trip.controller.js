@@ -54,6 +54,63 @@ class tripController {
       }
     }
   }
+  async trip(ctx) {
+    const { tripId } = ctx.query
+    const { userId } = ctx
+
+    try {
+      const { data } = await tripService.getTrip({ userId, tripId })
+
+      ctx.body = {
+        success: true,
+        data
+      }
+    } catch (err) {
+      ctx.body = {
+        success: false,
+        message: 'get trip failed'
+      }
+    }
+  }
+  async createTripDayWithDestination(ctx) {
+    const {
+      tripId,
+      trip_date,
+      name,
+      address,
+      place_id,
+      lat,
+      lng,
+      arrival_time,
+      leave_time,
+      visit_order
+    } = ctx.request.body
+
+    try {
+      const result = await tripService.createTripDayWithDestination({
+        tripId,
+        trip_date,
+        name,
+        address,
+        place_id,
+        lat,
+        lng,
+        arrival_time,
+        leave_time,
+        visit_order
+      })
+      console.log(result)
+      ctx.body = {
+        success: true
+      }
+    } catch (err) {
+      console.log('createTripDayWithDestination db error', err)
+      ctx.body = {
+        success: false,
+        message: 'create trip day failed'
+      }
+    }
+  }
 }
 
 module.exports = new tripController()
