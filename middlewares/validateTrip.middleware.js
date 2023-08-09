@@ -22,8 +22,8 @@ const upload = multer({
 const tripSchema = object({
   tripImage: string().nullable(),
   title: string().required(),
-  startDate: date().required(),
-  endDate: date().required().min(ref('startDate'))
+  start_date: date().required(),
+  end_date: date().required().min(ref('start_date'))
 })
 
 const validateTrip = createValidationMiddleware(tripSchema)

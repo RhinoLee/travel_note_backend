@@ -3,7 +3,7 @@ const { uploadImageToGCP, deleteImageFromGCP } = require('../utils/imageHandler'
 
 class tripController {
   async create(ctx) {
-    const { title, startDate, endDate } = ctx.request.body
+    const { title, start_date, end_date } = ctx.request.body
     const file = ctx.request.file
     const { userId } = ctx
     // 待回傳的圖片網址（上傳 cloud storage 成功）
@@ -12,7 +12,7 @@ class tripController {
     try {
       if (file) imageUrl = await uploadImageToGCP({ file, userId })
 
-      const trip = await tripService.create({ userId, title, startDate, endDate, imageUrl })
+      const trip = await tripService.create({ userId, title, start_date, end_date, imageUrl })
 
       ctx.body = {
         success: true,
@@ -99,7 +99,7 @@ class tripController {
         leave_time,
         visit_order
       })
-      console.log(result)
+
       ctx.body = {
         success: true
       }
@@ -108,6 +108,24 @@ class tripController {
       ctx.body = {
         success: false,
         message: 'create trip day failed'
+      }
+    }
+  }
+  async getTripDayWithDestination(ctx) {
+    const { userId } = ctx
+    const { tripId, tripDate } = ctx.params
+
+    try {
+      const data = await tripService.getTripDayWithDestination({ userId, tripId, tripDate })
+      ctx.body = {
+        success: true,
+        data
+      }
+    } catch (err) {
+      console.log('getTripDayWithDestination error', err)
+      ctx.body = {
+        success: false,
+        message: 'get tripday with destination failed'
       }
     }
   }

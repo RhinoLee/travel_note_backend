@@ -1,7 +1,7 @@
 const { pool } = require('../app/database')
 
 class TripService {
-  async create({ userId, title, description = null, startDate, endDate, imageUrl }) {
+  async create({ userId, title, description = null, start_date, end_date, imageUrl }) {
     let conn = null
     try {
       conn = await pool.getConnection()
@@ -14,8 +14,8 @@ class TripService {
         userId,
         title,
         description,
-        startDate,
-        endDate,
+        start_date,
+        end_date,
         imageUrl
       ])
 
@@ -133,6 +133,35 @@ class TripService {
       return { id: finalId }
     } catch (err) {
       if (conn) await conn.rollback()
+      throw err
+    } finally {
+      if (conn) conn.release()
+    }
+  }
+  async getTripDayWithDestination({ userId, tripId, tripDate }) {
+    let conn = null
+    try {
+      conn = await pool.getConnection()
+
+      const statement = `
+        SELECT
+          td.id, td.arrival_time, td.leave_time, td.visit_order,
+          d.name as destinationName, d.place_id,
+          t.trip_date
+        FROM tripdays_destinations AS td
+        LEFT JOIN destinations AS d
+        ON td.destination_id = d.id
+        LEFT JOIN trip_days AS t
+        ON td.trip_day_id = t.id
+        LEFT JOIN trips as ts
+        ON t.trip_id = ts.id
+        WHERE ts.user_id = ? AND t.trip_id = ? AND t.trip_date = ?
+      `
+
+      const [rows] = await conn.execute(statement, [userId, tripId, tripDate])
+      return rows
+    } catch (err) {
+      console.log(err)
       throw err
     } finally {
       if (conn) conn.release()

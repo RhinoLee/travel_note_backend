@@ -8,5 +8,6 @@ tripRouter.post('/', verifyToken, upload.single('tripImage'), validateTrip, trip
 tripRouter.post('/:tripId', verifyToken, tripController.createTripDayWithDestination)
 tripRouter.get('/list', verifyToken, tripController.list)
 tripRouter.get('/', verifyToken, tripController.trip)
+tripRouter.get('/:tripId/:tripDate', verifyToken, tripController.getTripDayWithDestination)
 
 module.exports = tripRouter
