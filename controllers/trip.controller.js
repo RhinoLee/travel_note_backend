@@ -55,11 +55,11 @@ class tripController {
     }
   }
   async trip(ctx) {
-    const { tripId } = ctx.query
+    const { trip_id } = ctx.query
     const { userId } = ctx
 
     try {
-      const { data } = await tripService.getTrip({ userId, tripId })
+      const { data } = await tripService.getTrip({ userId, trip_id })
 
       ctx.body = {
         success: true,
@@ -74,7 +74,7 @@ class tripController {
   }
   async createTripDayWithDestination(ctx) {
     const {
-      tripId,
+      trip_id,
       trip_date,
       name,
       address,
@@ -88,7 +88,7 @@ class tripController {
 
     try {
       const result = await tripService.createTripDayWithDestination({
-        tripId,
+        trip_id,
         trip_date,
         name,
         address,
@@ -113,10 +113,10 @@ class tripController {
   }
   async getTripDayWithDestination(ctx) {
     const { userId } = ctx
-    const { tripId, tripDate } = ctx.params
+    const { trip_id, trip_date } = ctx.params
 
     try {
-      const data = await tripService.getTripDayWithDestination({ userId, tripId, tripDate })
+      const data = await tripService.getTripDayWithDestination({ userId, trip_id, trip_date })
       ctx.body = {
         success: true,
         data
@@ -126,6 +126,42 @@ class tripController {
       ctx.body = {
         success: false,
         message: 'get tripday with destination failed'
+      }
+    }
+  }
+  async updateTripDayWithDestination(ctx) {
+    /**
+     * @id - tripdays_destinations table id
+     * @trip_id - trips table id
+     * @trip_day_id - trip_days table id
+     * @destination_id - destination table id
+     */
+    const { trip_id, trip_day_id } = ctx.params
+    const { id, arrival_time, leave_time, name, destination_id, trip_date } = ctx.request.body
+    const { userId } = ctx
+
+    try {
+      const data = await tripService.updateTripDayWithDestination({
+        trip_id,
+        trip_day_id,
+        id,
+        arrival_time,
+        leave_time,
+        name,
+        destination_id,
+        trip_date,
+        userId
+      })
+
+      ctx.body = {
+        success: true,
+        data
+      }
+    } catch (err) {
+      console.log('updateTripDayWithDestination db error', err)
+      ctx.body = {
+        success: false,
+        message: 'update trip day failed'
       }
     }
   }

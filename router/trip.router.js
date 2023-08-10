@@ -5,9 +5,10 @@ const { verifyToken } = require('../middlewares/auth.middleware')
 const tripRouter = new KoaRouter({ prefix: '/trip' })
 
 tripRouter.post('/', verifyToken, upload.single('tripImage'), validateTrip, tripController.create)
-tripRouter.post('/:tripId', verifyToken, tripController.createTripDayWithDestination)
+tripRouter.post('/:trip_id', verifyToken, tripController.createTripDayWithDestination)
 tripRouter.get('/list', verifyToken, tripController.list)
 tripRouter.get('/', verifyToken, tripController.trip)
-tripRouter.get('/:tripId/:tripDate', verifyToken, tripController.getTripDayWithDestination)
+tripRouter.get('/:trip_id/:trip_date', verifyToken, tripController.getTripDayWithDestination)
+tripRouter.put('/:trip_id/:trip_day_id', verifyToken, tripController.updateTripDayWithDestination)
 
 module.exports = tripRouter

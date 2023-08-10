@@ -56,7 +56,7 @@ class TripService {
       if (conn) conn.release()
     }
   }
-  async getTrip({ userId, tripId }) {
+  async getTrip({ userId, trip_id }) {
     let conn = null
     try {
       conn = await pool.getConnection()
@@ -65,7 +65,7 @@ class TripService {
         SELECT id, name, start_date, end_date FROM trips
         WHERE user_id = ? AND id = ?
       `
-      const [rows] = await conn.execute(statement, [userId, tripId])
+      const [rows] = await conn.execute(statement, [userId, trip_id])
 
       return { data: rows[0] }
     } catch (err) {
@@ -76,7 +76,7 @@ class TripService {
     }
   }
   async createTripDayWithDestination({
-    tripId,
+    trip_id,
     trip_date,
     name,
     address,
@@ -95,7 +95,7 @@ class TripService {
       const tripDayStatement = `
         INSERT INTO trip_days(trip_id, trip_date) VALUES(?, ?);
       `
-      const [tripDayResult] = await conn.execute(tripDayStatement, [tripId, trip_date])
+      const [tripDayResult] = await conn.execute(tripDayStatement, [trip_id, trip_date])
       const trip_day_id = tripDayResult.insertId || null
 
       if (trip_day_id === null) throw Error('trip_day_id not found')
@@ -138,16 +138,16 @@ class TripService {
       if (conn) conn.release()
     }
   }
-  async getTripDayWithDestination({ userId, tripId, tripDate }) {
+  async getTripDayWithDestination({ userId, trip_id, trip_date }) {
     let conn = null
     try {
       conn = await pool.getConnection()
 
       const statement = `
         SELECT
-          td.id, td.arrival_time, td.leave_time, td.visit_order,
-          d.name as destinationName, d.place_id,
-          t.trip_date
+          td.id, td.arrival_time, td.destination_id, td.trip_day_id, td.leave_time, td.visit_order,
+          d.name as name, d.place_id,
+          t.trip_id, t.trip_date
         FROM tripdays_destinations AS td
         LEFT JOIN destinations AS d
         ON td.destination_id = d.id
@@ -158,10 +158,61 @@ class TripService {
         WHERE ts.user_id = ? AND t.trip_id = ? AND t.trip_date = ?
       `
 
-      const [rows] = await conn.execute(statement, [userId, tripId, tripDate])
+      const [rows] = await conn.execute(statement, [userId, trip_id, trip_date])
       return rows
     } catch (err) {
       console.log(err)
+      throw err
+    } finally {
+      if (conn) conn.release()
+    }
+  }
+  async updateTripDayWithDestination({
+    userId,
+    trip_id,
+    id,
+    arrival_time,
+    leave_time,
+    trip_day_id,
+    trip_date,
+    destination_id,
+    name
+  }) {
+    let conn = null
+
+    try {
+      conn = await pool.getConnection()
+      await conn.beginTransaction()
+
+      const tripDayDestinationStatement = `
+        UPDATE tripdays_destinations
+        SET arrival_time = ?, leave_time = ?
+        WHERE id = ?;
+      `
+
+      conn.execute(tripDayDestinationStatement, [arrival_time, leave_time, id])
+
+      const destinationStatement = `
+        UPDATE destinations
+        SET name = ?
+        WHERE id = ?
+      `
+
+      conn.execute(destinationStatement, [name, destination_id])
+
+      const tripDayStatement = `
+        UPDATE trip_days
+        SET trip_date = ?
+        WHERE id = ?
+      `
+
+      conn.execute(tripDayStatement, [trip_date, trip_day_id])
+
+      await conn.commit()
+
+      return await this.getTripDayWithDestination({ userId, trip_id, trip_date })
+    } catch (err) {
+      if (conn) await conn.rollback()
       throw err
     } finally {
       if (conn) conn.release()
