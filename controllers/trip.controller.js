@@ -133,22 +133,19 @@ class tripController {
     /**
      * @id - tripdays_destinations table id
      * @trip_id - trips table id
-     * @trip_day_id - trip_days table id
      * @destination_id - destination table id
      */
-    const { trip_id, trip_day_id } = ctx.params
-    const { id, arrival_time, leave_time, name, destination_id, trip_date } = ctx.request.body
+    const { trip_id, id } = ctx.params
+    const { arrival_time, leave_time, name, trip_date } = ctx.request.body
     const { userId } = ctx
 
     try {
       const data = await tripService.updateTripDayWithDestination({
         trip_id,
-        trip_day_id,
         id,
         arrival_time,
         leave_time,
         name,
-        destination_id,
         trip_date,
         userId
       })

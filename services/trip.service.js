@@ -145,8 +145,8 @@ class TripService {
 
       const statement = `
         SELECT
-          td.id, td.arrival_time, td.destination_id, td.trip_day_id, td.leave_time, td.visit_order,
-          d.name as name, d.place_id,
+          td.id, td.arrival_time, td.leave_time, td.visit_order,
+          d.name as name, d.place_id, d.lat, d.lng,
           t.trip_id, t.trip_date
         FROM tripdays_destinations AS td
         LEFT JOIN destinations AS d
@@ -167,15 +167,32 @@ class TripService {
       if (conn) conn.release()
     }
   }
+  // 從 tripdays_destinations table 中取得 tripday id & destaination id
+  async getTripDayAndDestinationId(id) {
+    let conn = null
+
+    try {
+      conn = await pool.getConnection()
+      const statement = `
+        SELECT trip_day_id, destination_id FROM tripdays_destinations WHERE id = ?
+      `
+
+      const [rows] = await conn.execute(statement, [id])
+      return { data: rows[0] }
+    } catch (err) {
+      console.log(err)
+      throw err
+    } finally {
+      if (conn) conn.release()
+    }
+  }
   async updateTripDayWithDestination({
     userId,
     trip_id,
     id,
     arrival_time,
     leave_time,
-    trip_day_id,
     trip_date,
-    destination_id,
     name
   }) {
     let conn = null
@@ -191,6 +208,8 @@ class TripService {
       `
 
       conn.execute(tripDayDestinationStatement, [arrival_time, leave_time, id])
+      const { data } = await this.getTripDayAndDestinationId(id)
+      const { trip_day_id, destination_id } = data
 
       const destinationStatement = `
         UPDATE destinations
