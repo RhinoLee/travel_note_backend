@@ -156,6 +156,7 @@ class TripService {
         LEFT JOIN trips as ts
         ON t.trip_id = ts.id
         WHERE ts.user_id = ? AND t.trip_id = ? AND t.trip_date = ?
+        ORDER BY td.arrival_time ASC;
       `
 
       const [rows] = await conn.execute(statement, [userId, trip_id, trip_date])
