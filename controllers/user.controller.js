@@ -1,6 +1,5 @@
 const userService = require('../services/user.service')
-const { PRIVATE_KEY } = require('../config/secret')
-const jwt = require('jsonwebtoken')
+const { setAuthCookies } = require('../utils/cookiesHandler')
 
 class UserController {
   async create(ctx) {
@@ -22,13 +21,13 @@ class UserController {
   async login(ctx) {
     // 1. get user data
     const { id, name } = ctx.user
-    // 2. generate token
-    const token = jwt.sign({ id, name }, PRIVATE_KEY, {
-      expiresIn: 60 * 60 * 24,
-      algorithm: 'RS256'
-    })
+    // 2. generate token & set cookies
+    const { refreshToken: newRefreshToken } = setAuthCookies(ctx, id, name)
 
-    ctx.body = { success: true, data: { id, name, token } }
+    // 更新資料庫 refresh token
+    await userService.updateRefreshToken(id, newRefreshToken)
+
+    ctx.body = { success: true, data: { id, name } }
   }
 }
 

@@ -52,10 +52,56 @@ class UserService {
       if (conn) conn.release()
     }
   }
+  async findUserById(id) {
+    const statement = 'SELECT * FROM `users` WHERE id = ?;'
+    let conn = null
+    try {
+      conn = await pool.getConnection()
+
+      const [values] = await conn.execute(statement, [id])
+
+      return values
+    } catch (error) {
+      console.log(error)
+      throw error
+    } finally {
+      if (conn) conn.release()
+    }
+  }
   async passwordCompare(password, hashedPassword) {
     if (!password || !hashedPassword) return false
     const match = await bcrypt.compare(password, hashedPassword)
     return match
+  }
+  async refreshTokenCompare(token, hashedToken) {
+    if (!token || !hashedToken) return false
+    const match = await bcrypt.compare(token, hashedToken)
+    return match
+  }
+  async updateRefreshToken(userId, token) {
+    let conn = null
+    try {
+      conn = await pool.getConnection()
+      const statement = `
+        UPDATE user_authentications 
+        SET refresh_token = ?
+        WHERE user_id = ?
+      `
+
+      // hash token
+      let hashedToken = null
+      if (token) {
+        const saltRounds = 10
+        hashedToken = await bcrypt.hash(token, saltRounds)
+      }
+
+      await conn.execute(statement, [hashedToken, userId])
+    } catch (err) {
+      console.log(err)
+      throw err
+    } finally {
+      if (conn) conn.release()
+    }
   }
 }
 
