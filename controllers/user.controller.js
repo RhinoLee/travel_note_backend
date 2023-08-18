@@ -1,33 +1,95 @@
 const userService = require('../services/user.service')
 const { setAuthCookies } = require('../utils/cookiesHandler')
+const { PROVIDER_GOOGLE, PROVIDER_EMAIL } = require('../config/constants/providerConstants')
+const errorHandler = require('../utils/errorHandlers/userErrorHandler')
+const {
+  EMAIL_REGISTER_ERROR,
+  LOGIN_ERROR
+} = require('../config/constants/errorConstants/userErrorConstants')
 
 class UserController {
+  // email 註冊
   async create(ctx) {
     const user = ctx.request.body
+    // 設定 provider 為 email
+    user.provider = PROVIDER_EMAIL
 
     try {
       const res = await userService.create(user)
-      ctx.status = 201
       ctx.body = { success: true, ...res }
-    } catch (error) {
-      ctx.status = 500
-      ctx.body = {
-        success: false,
-        message: error
-      }
+    } catch (err) {
+      errorHandler(EMAIL_REGISTER_ERROR, ctx)
     }
   }
 
+  // email 登入
   async login(ctx) {
     // 1. get user data
     const { id, name } = ctx.user
-    // 2. generate token & set cookies
-    const { refreshToken: newRefreshToken } = setAuthCookies(ctx, id, name)
+    try {
+      // 2. generate token & set cookies
+      const { refreshToken: newRefreshToken } = setAuthCookies(ctx, id, name)
+      // 更新資料庫 refresh token
+      await userService.updateRefreshToken(id, newRefreshToken)
+      ctx.body = { success: true, data: { id, name } }
+    } catch (err) {
+      errorHandler(LOGIN_ERROR, ctx)
+    }
+  }
 
-    // 更新資料庫 refresh token
-    await userService.updateRefreshToken(id, newRefreshToken)
+  // google 第三方登入
+  async googleLoginUrl(ctx) {
+    const authorizationUrl = ctx.authorizationUrl
 
-    ctx.body = { success: true, data: { id, name } }
+    if (!authorizationUrl) {
+      errorHandler(LOGIN_ERROR, ctx)
+      return
+    }
+
+    ctx.body = { success: true, data: { login_url: authorizationUrl } }
+  }
+
+  async googleLogin(ctx) {
+    try {
+      // 拿到 email 代表通過驗證登入成功
+      if (ctx.userEmail) {
+        // 先拿 email 到資料庫查詢 user 是否存在
+        const users = await userService.findUserByEmail(ctx.userEmail)
+
+        // 不存在 -> 新增 user
+        if (!users.length) {
+          const userInfo = {
+            name: ctx.userEmail,
+            password: null,
+            email: ctx.userEmail,
+            provider: PROVIDER_GOOGLE,
+            provider_id: null
+          }
+          await userService.create(userInfo)
+        }
+
+        const usersResult = await userService.findUserByEmail(ctx.userEmail)
+        const user = usersResult[0]
+
+        // 返回對應 cookies
+        const { refreshToken: newRefreshToken } = setAuthCookies(ctx, user.id, user.name)
+
+        // 更新資料庫 refresh token
+        await userService.updateRefreshToken(user.id, newRefreshToken)
+
+        ctx.body = {
+          success: true,
+          data: { ...user }
+        }
+      } else {
+        errorHandler(LOGIN_ERROR, ctx)
+      }
+    } catch (err) {
+      console.log('googleLogin error', err)
+      errorHandler(LOGIN_ERROR, ctx)
+
+      return
+    }
   }
 }
 

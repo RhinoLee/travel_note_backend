@@ -15,8 +15,11 @@ class UserService {
       const [user] = await conn.execute(userStatement, [name, email])
 
       // hash password
-      const saltRounds = 10
-      const hashedPassword = await bcrypt.hash(password, saltRounds)
+      let hashedPassword = null
+      if (password) {
+        const saltRounds = 10
+        hashedPassword = await bcrypt.hash(password, saltRounds)
+      }
 
       const authenticationStatement = `INSERT INTO user_authentications(user_id, provider, provider_id, password) VALUES(?, ?, ?, ?)`
       await conn.execute(authenticationStatement, [

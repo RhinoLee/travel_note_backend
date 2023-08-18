@@ -20,6 +20,7 @@
     "email-validator": "^2.0.4",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^5.0.0",
+    "googleapis": "^125.0.0",
     "jsonwebtoken": "^9.0.1",
     "koa": "^2.14.2",
     "koa-bodyparser": "^4.4.1",

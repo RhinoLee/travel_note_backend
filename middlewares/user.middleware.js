@@ -1,37 +1,28 @@
 const {
-  REGISTER_PROVIDER_ERROR,
   REGISTER_NAME_ERROR,
   EMAIL_OR_PASSWORD_ERROR,
   EMAIL_IS_ALREADY_EXISTS
-} = require('../config/constants/errorConstants')
-const providerConstants = require('../config/constants/providerConstants')
+} = require('../config/constants/errorConstants/userErrorConstants')
 const { passwordRegex } = require('../config/patterns')
 const userService = require('../services/user.service')
 const emailValidator = require('email-validator')
-const errorHandler = require('../utils/errorHandler')
+const errorHandler = require('../utils/errorHandlers/userErrorHandler')
 
 const verifyUser = async (ctx, next) => {
-  const { name, password, email, provider, provider_id } = ctx.request.body
+  const { name, password, email } = ctx.request.body
 
   if (!name) return errorHandler(REGISTER_NAME_ERROR, ctx)
 
-  // 判斷 provider => email 註冊 or 其他第三方註冊(ex: google)
-  if (!provider || !Object.values(providerConstants).includes(provider)) {
-    return errorHandler(REGISTER_PROVIDER_ERROR, ctx)
-  }
+  // email 註冊驗證
+  if (!password || !email) return errorHandler(REGISTER_EMAIL_OR_PASSWORD_ERROR, ctx)
 
-  // email 註冊
-  if (provider === providerConstants.PROVIDER_EMAIL) {
-    if (!password || !email) return errorHandler(REGISTER_EMAIL_OR_PASSWORD_ERROR, ctx)
+  if (!emailValidator.validate(email)) return errorHandler(REGISTER_EMAIL_OR_PASSWORD_ERROR, ctx)
 
-    if (!emailValidator.validate(email)) return errorHandler(REGISTER_EMAIL_OR_PASSWORD_ERROR, ctx)
+  if (!passwordRegex.test(password)) return errorHandler(REGISTER_EMAIL_OR_PASSWORD_ERROR, ctx)
 
-    if (!passwordRegex.test(password)) return errorHandler(REGISTER_EMAIL_OR_PASSWORD_ERROR, ctx)
-
-    const users = await userService.findUserByEmail(email)
-    if (users.length) {
-      return errorHandler(EMAIL_IS_ALREADY_EXISTS, ctx)
-    }
+  const users = await userService.findUserByEmail(email)
+  if (users.length) {
+    return errorHandler(EMAIL_IS_ALREADY_EXISTS, ctx)
   }
 
   await next()
