@@ -2,5 +2,19 @@
   "name": "Travel Note Backend",
   "dockerComposeFile": "../../travel_note_configs/docker-compose.dev.yml",
   "service": "travel_note_backend",
-  "workspaceFolder": "/app"
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/zsh",
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      },
+      "extensions": [
+        "EditorConfig.EditorConfig",
+        "oderwat.indent-rainbow",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
 }
