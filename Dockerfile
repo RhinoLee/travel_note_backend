@@ -19,7 +19,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # 僅安裝 production 依賴
-RUN apt-get update && apt-get install -y tcpdump && npm ci --only=production
+RUN apt-get update && apt-get install -y netcat && npm ci --only=production
 
 COPY . .
 
