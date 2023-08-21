@@ -11,7 +11,7 @@ const verifyToken = async (ctx, next) => {
   const accessToken = ctx.cookies.get(ACCESS_TOKEN)
   const refreshToken = ctx.cookies.get(REFRESH_TOKEN)
 
-  if (accessToken && csrfToken) {
+  if (accessToken) {
     try {
       // 驗證 CSRF Token
       if (!tokens.verify(accessToken, csrfToken)) throw new Error('invalid csrf token')

@@ -4,10 +4,25 @@ const { PROVIDER_GOOGLE, PROVIDER_EMAIL } = require('../config/constants/provide
 const errorHandler = require('../utils/errorHandlers/userErrorHandler')
 const {
   EMAIL_REGISTER_ERROR,
-  LOGIN_ERROR
+  LOGIN_ERROR,
+  GET_USER_ERROR
 } = require('../config/constants/errorConstants/userErrorConstants')
 
 class UserController {
+  async getUserInfo() {
+    try {
+      const usersResult = await userService.findUserById(ctx.userId)
+      const user = usersResult[0]
+      const { id, name, avatar } = user
+
+      ctx.body = {
+        success: true,
+        data: { id, name, avatar }
+      }
+    } catch (err) {
+      errorHandler(GET_USER_ERROR, ctx)
+    }
+  }
   // email 註冊
   async create(ctx) {
     const user = ctx.request.body
@@ -70,6 +85,7 @@ class UserController {
 
         const usersResult = await userService.findUserByEmail(ctx.userEmail)
         const user = usersResult[0]
+        const { id, name, avatar } = user
 
         // 返回對應 cookies
         const { refreshToken: newRefreshToken } = setAuthCookies(ctx, user.id, user.name)
@@ -79,7 +95,8 @@ class UserController {
 
         ctx.body = {
           success: true,
-          data: { ...user }
+          data: { id, name, avatar }
+          // data: { ...user }
         }
       } else {
         errorHandler(LOGIN_ERROR, ctx)
