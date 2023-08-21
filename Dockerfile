@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y tcpdump && npm ci --only=production
 
 COPY . .
 
+RUN chmod +x ./wait-for.sh
 RUN chmod +x ./start.sh
 
 EXPOSE 5002
