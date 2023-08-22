@@ -22,7 +22,7 @@ const getAuthorizationUrl = async (ctx, next) => {
 
 const checkUserEmail = async (ctx, next) => {
   const { code } = ctx.request.body
-  console.log('code', code)
+
   if (!code) {
     ctx.body = {
       success: false,
@@ -37,13 +37,12 @@ const checkUserEmail = async (ctx, next) => {
     let { tokens } = await oauth2Client.getToken(code)
     oauth2Client.setCredentials(tokens)
 
-    // 使用 OAuth2 client 取得使用者的 email
+    // 使用 OAuth2 client 取得 user info
     const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client })
     let userInfo = await oauth2.userinfo.get()
 
-    let userEmail = userInfo.data.email
-    // 現在，userEmail 應該已經包含使用者的 email
-    console.log(userEmail)
+    // 準備儲存的資料
+    const userEmail = userInfo.data.email
     ctx.userEmail = userEmail
     await next()
   } catch (err) {

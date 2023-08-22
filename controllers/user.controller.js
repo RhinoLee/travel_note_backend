@@ -65,6 +65,12 @@ class UserController {
   }
 
   async googleLogin(ctx) {
+    async function getUserByEmail() {
+      const usersResult = await userService.findUserByEmail(ctx.userEmail)
+      const user = usersResult[0]
+      return user
+    }
+
     try {
       // 拿到 email 代表通過驗證登入成功
       if (ctx.userEmail) {
@@ -83,19 +89,17 @@ class UserController {
           await userService.create(userInfo)
         }
 
-        const usersResult = await userService.findUserByEmail(ctx.userEmail)
-        const user = usersResult[0]
-        const { id, name, avatar } = user
+        const { id, name, email, avatar } = await getUserByEmail()
 
         // 返回對應 cookies
-        const { refreshToken: newRefreshToken } = setAuthCookies(ctx, user.id, user.name)
+        const { refreshToken: newRefreshToken } = setAuthCookies(ctx, id, name)
 
         // 更新資料庫 refresh token
-        await userService.updateRefreshToken(user.id, newRefreshToken)
+        await userService.updateRefreshToken(id, newRefreshToken)
 
         ctx.body = {
           success: true,
-          data: { id, name, avatar }
+          data: { id, name, email, avatar }
           // data: { ...user }
         }
       } else {

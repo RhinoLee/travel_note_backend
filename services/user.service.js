@@ -9,10 +9,11 @@ class UserService {
 
       await conn.beginTransaction()
 
-      const { name, password, email, provider, provider_id } = userInfo
+      const { name, password, email, provider, provider_id, avatar = null } = userInfo
 
-      const userStatement = `INSERT INTO users(name, email) VALUES(?, ?)`
-      const [user] = await conn.execute(userStatement, [name, email])
+      // user table
+      const userStatement = `INSERT INTO users(name, email, avatar) VALUES(?, ?, ?)`
+      const [user] = await conn.execute(userStatement, [name, email, avatar])
 
       // hash password
       let hashedPassword = null
@@ -21,6 +22,7 @@ class UserService {
         hashedPassword = await bcrypt.hash(password, saltRounds)
       }
 
+      // user_authtication table
       const authenticationStatement = `INSERT INTO user_authentications(user_id, provider, provider_id, password) VALUES(?, ?, ?, ?)`
       await conn.execute(authenticationStatement, [
         user.insertId,
@@ -35,6 +37,22 @@ class UserService {
     } catch (error) {
       if (conn) await conn.rollback()
       throw error
+    } finally {
+      if (conn) conn.release()
+    }
+  }
+  async update({ id, name, avatar }) {
+    if (!name) throw new Error('name is required')
+    let conn = null
+    try {
+      conn = await pool.getConnection()
+      const statement = `UPDATE users SET name = ?, avatar = ? WHERE id = ?`
+
+      const result = await conn.execute(statement, [name, avatar, id])
+      return result
+    } catch (err) {
+      console.log(err)
+      throw err
     } finally {
       if (conn) conn.release()
     }
