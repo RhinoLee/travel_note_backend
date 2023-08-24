@@ -12,8 +12,8 @@ const storage = new Storage({
 const bucketName = Buffer.from(GCP_BUCKET_NAME, 'utf8').toString()
 const bucket = storage.bucket(bucketName)
 
-async function uploadImageToGCP({ file, userId }) {
-  const filename = `${userId}/trips/${uuidv4()}.webp`
+async function uploadImageToGCP({ file, userId, folderName }) {
+  const filename = `${userId}/${folderName}/${uuidv4()}.webp`
   const blob = bucket.file(filename)
 
   const blobStream = blob.createWriteStream({
@@ -43,7 +43,8 @@ async function uploadImageToGCP({ file, userId }) {
 async function deleteImageFromGCP(imageUrl) {
   const filename = imageUrl.split(`${GCP_STORAGE_URL}/${GCP_BUCKET_NAME}/`)[1]
   const file = bucket.file(filename)
-  if (file) {
+  const [exists] = await file.exists()
+  if (exists) {
     await file.delete()
     console.log('Deleted file from Google Cloud Storage:', filename)
   }

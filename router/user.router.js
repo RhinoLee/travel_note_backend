@@ -1,6 +1,11 @@
 const KoaRouter = require('@koa/router')
 const userController = require('../controllers/user.controller')
-const { verifyUser, verifyEmailLogin } = require('../middlewares/user.middleware')
+const {
+  verifyUser,
+  verifyEmailLogin,
+  validateUserInfo,
+  upload
+} = require('../middlewares/user.middleware')
 const { verifyToken } = require('../middlewares/auth.middleware')
 const { checkUserEmail, getAuthorizationUrl } = require('../middlewares/googleLogin.middleware')
 
@@ -15,5 +20,14 @@ userRouter.get('/google_login_url', getAuthorizationUrl, userController.googleLo
 userRouter.post('/google_login', checkUserEmail, userController.googleLogin)
 // user info
 userRouter.get('/', verifyToken, userController.getUserInfo)
+userRouter.put(
+  '/',
+  verifyToken,
+  upload.single('avatar'),
+  validateUserInfo,
+  userController.updateUserInfo
+)
+
+// tripRouter.post('/', verifyToken, upload.single('tripImage'), validateTrip, tripController.create)
 
 module.exports = userRouter

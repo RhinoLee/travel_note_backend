@@ -47,9 +47,7 @@ class UserService {
     try {
       conn = await pool.getConnection()
       const statement = `UPDATE users SET name = ?, avatar = ? WHERE id = ?`
-
-      const result = await conn.execute(statement, [name, avatar, id])
-      return result
+      await conn.execute(statement, [name, avatar, id])
     } catch (err) {
       console.log(err)
       throw err
@@ -82,6 +80,22 @@ class UserService {
       const [values] = await conn.execute(statement, [id])
 
       return values
+    } catch (error) {
+      console.log(error)
+      throw error
+    } finally {
+      if (conn) conn.release()
+    }
+  }
+  async findUserAvatar(id) {
+    const statement = 'SELECT avatar FROM `users` WHERE id = ?;'
+    let conn = null
+    try {
+      conn = await pool.getConnection()
+
+      const [values] = await conn.execute(statement, [id])
+
+      return values[0].avatar
     } catch (error) {
       console.log(error)
       throw error

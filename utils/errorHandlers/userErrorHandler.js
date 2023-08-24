@@ -4,10 +4,12 @@ const {
   EMAIL_IS_ALREADY_EXISTS,
   EMAIL_REGISTER_ERROR,
   LOGIN_ERROR,
-  GET_USER_ERROR
+  GET_USER_ERROR,
+  UPDATE_USER_ERROR
 } = require('../../config/constants/errorConstants/userErrorConstants')
 
 function errorHandler(err, ctx) {
+  console.log('errorHandler', err)
   let status = 400
   let message = ''
 
@@ -35,6 +37,10 @@ function errorHandler(err, ctx) {
     case GET_USER_ERROR:
       status = 500
       message = GET_USER_ERROR
+      break
+    case UPDATE_USER_ERROR:
+      status = 500
+      message = UPDATE_USER_ERROR
       break
   }
 

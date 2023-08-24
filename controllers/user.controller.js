@@ -2,14 +2,16 @@ const userService = require('../services/user.service')
 const { setAuthCookies } = require('../utils/cookiesHandler')
 const { PROVIDER_GOOGLE, PROVIDER_EMAIL } = require('../config/constants/providerConstants')
 const errorHandler = require('../utils/errorHandlers/userErrorHandler')
+const { uploadImageToGCP, deleteImageFromGCP } = require('../utils/imageHandler')
 const {
   EMAIL_REGISTER_ERROR,
   LOGIN_ERROR,
-  GET_USER_ERROR
+  GET_USER_ERROR,
+  UPDATE_USER_ERROR
 } = require('../config/constants/errorConstants/userErrorConstants')
 
 class UserController {
-  async getUserInfo() {
+  getUserInfo = async (ctx) => {
     try {
       const usersResult = await userService.findUserById(ctx.userId)
       const user = usersResult[0]
@@ -23,8 +25,51 @@ class UserController {
       errorHandler(GET_USER_ERROR, ctx)
     }
   }
+  updateUserInfo = async (ctx) => {
+    const { name, avatar } = ctx.request.body
+    const file = ctx.request.file
+    const { userId } = ctx
+    // 待回傳的圖片網址（上傳 cloud storage 成功）
+    let imageUrl = null
+    try {
+      let oldImageUrl = null
+
+      // user 有上傳新圖片
+      if (file) {
+        imageUrl = await uploadImageToGCP({ file, userId, folderName: 'avatar' })
+        // 先找出舊的 imageUrl，上傳新圖成功後刪除
+        oldImageUrl = await userService.findUserAvatar(userId)
+      } else if (typeof avatar === 'string') {
+        // user 帶舊圖，不更換
+        imageUrl = avatar
+      }
+
+      // 如果兩個都沒帶，代表要刪除圖片
+      if (!file && !avatar) oldImageUrl = await userService.findUserAvatar(userId)
+
+      // 更新資料庫
+      await userService.update({
+        id: ctx.userId,
+        name,
+        avatar: imageUrl ?? null
+      })
+
+      // 刪除舊頭貼
+      if (oldImageUrl) await deleteImageFromGCP(oldImageUrl)
+
+      // 回傳 user info
+      await this.getUserInfo(ctx)
+    } catch (err) {
+      console.log('updateUserInfo', err)
+      // 建立資料失敗，刪除上傳的圖片
+      if (imageUrl) {
+        await deleteImageFromGCP(imageUrl)
+      }
+      errorHandler(UPDATE_USER_ERROR, ctx)
+    }
+  }
   // email 註冊
-  async create(ctx) {
+  create = async (ctx) => {
     const user = ctx.request.body
     // 設定 provider 為 email
     user.provider = PROVIDER_EMAIL
@@ -38,7 +83,7 @@ class UserController {
   }
 
   // email 登入
-  async login(ctx) {
+  login = async (ctx) => {
     // 1. get user data
     const { id, name } = ctx.user
     try {
@@ -53,7 +98,7 @@ class UserController {
   }
 
   // google 第三方登入
-  async googleLoginUrl(ctx) {
+  googleLoginUrl = async (ctx) => {
     const authorizationUrl = ctx.authorizationUrl
 
     if (!authorizationUrl) {
@@ -64,7 +109,7 @@ class UserController {
     ctx.body = { success: true, data: { login_url: authorizationUrl } }
   }
 
-  async googleLogin(ctx) {
+  googleLogin = async (ctx) => {
     async function getUserByEmail() {
       const usersResult = await userService.findUserByEmail(ctx.userEmail)
       const user = usersResult[0]

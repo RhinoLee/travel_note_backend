@@ -8,6 +8,33 @@ const userService = require('../services/user.service')
 const emailValidator = require('email-validator')
 const errorHandler = require('../utils/errorHandlers/userErrorHandler')
 
+const multer = require('@koa/multer')
+const { object, string } = require('yup')
+const createValidationMiddleware = require('../utils/createValidationMiddleware')
+
+const imageRegex = /^image\/(jpe?g|png|gif|webp)$/i
+const upload = multer({
+  limits: {
+    fileSize: 1024 * 1024 * 5 // 5MB
+  },
+  fileFilter: (req, file, cb) => {
+    if (!file) return cb(null, true)
+    if (imageRegex.test(file.mimetype.toLowerCase())) {
+      return cb(null, true)
+    } else {
+      // 錯誤會透過全域 multerErrorHandler.middleware 處理
+      return cb(null, false, new Error('Only image files are allowed!'))
+    }
+  }
+})
+
+const userInfoSchema = object({
+  avatar: string().nullable(),
+  name: string().required()
+})
+
+const validateUserInfo = createValidationMiddleware(userInfoSchema)
+
 const verifyUser = async (ctx, next) => {
   const { name, password, email } = ctx.request.body
 
@@ -54,5 +81,7 @@ const verifyEmailLogin = async (ctx, next) => {
 
 module.exports = {
   verifyUser,
-  verifyEmailLogin
+  verifyEmailLogin,
+  validateUserInfo,
+  upload
 }

@@ -10,7 +10,7 @@ class tripController {
     let imageUrl = null
     // user 有上傳圖片
     try {
-      if (file) imageUrl = await uploadImageToGCP({ file, userId })
+      if (file) imageUrl = await uploadImageToGCP({ file, userId, folderName: 'trips' })
 
       const trip = await tripService.create({ userId, title, start_date, end_date, imageUrl })
 
