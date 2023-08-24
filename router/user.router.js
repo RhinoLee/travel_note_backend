@@ -27,6 +27,8 @@ userRouter.put(
   validateUserInfo,
   userController.updateUserInfo
 )
+// logout
+userRouter.post('/logout', verifyToken, userController.logout)
 
 // tripRouter.post('/', verifyToken, upload.single('tripImage'), validateTrip, tripController.create)
 

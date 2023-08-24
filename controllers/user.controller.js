@@ -1,5 +1,5 @@
 const userService = require('../services/user.service')
-const { setAuthCookies } = require('../utils/cookiesHandler')
+const { setAuthCookies, clearAuthCookies } = require('../utils/cookiesHandler')
 const { PROVIDER_GOOGLE, PROVIDER_EMAIL } = require('../config/constants/providerConstants')
 const errorHandler = require('../utils/errorHandlers/userErrorHandler')
 const { uploadImageToGCP, deleteImageFromGCP } = require('../utils/imageHandler')
@@ -15,11 +15,11 @@ class UserController {
     try {
       const usersResult = await userService.findUserById(ctx.userId)
       const user = usersResult[0]
-      const { id, name, avatar } = user
+      const { id, name, avatar, email } = user
 
       ctx.body = {
         success: true,
-        data: { id, name, avatar }
+        data: { id, name, avatar, email }
       }
     } catch (err) {
       errorHandler(GET_USER_ERROR, ctx)
@@ -94,6 +94,20 @@ class UserController {
       ctx.body = { success: true, data: { id, name } }
     } catch (err) {
       errorHandler(LOGIN_ERROR, ctx)
+    }
+  }
+
+  // 登出
+  logout = async (ctx) => {
+    try {
+      const { userId } = ctx
+      await userService.updateRefreshToken(userId, null)
+      // 清除 cookies
+      clearAuthCookies(ctx)
+
+      ctx.body = { success: true, data: {} }
+    } catch (err) {
+      console.log('logout error', err)
     }
   }
 
