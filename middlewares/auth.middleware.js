@@ -31,13 +31,14 @@ const verifyToken = async (ctx, next) => {
           const decodedRefresh = jwt.verify(refreshToken, PRIVATE_KEY)
 
           // 檢查 refreshToken 是否在 DB 中
-          const users = await userService.findUserById(decodedRefresh.id)
+          const users = await userService.findUserByIdWithAuth(decodedRefresh.id)
           const refreshTokenHash = users[0]['refresh_token']
           // 驗證 refreshToken
-          const isRefreshTokenMatch = userService.refreshTokenCompare(
+          const isRefreshTokenMatch = await userService.refreshTokenCompare(
             refreshToken,
             refreshTokenHash
           )
+
           if (!isRefreshTokenMatch) throw new Error('Invalid refresh token')
 
           // 如果 refreshToken 有效，建立新的 accessToken, refreshToken, csrfToken cookies

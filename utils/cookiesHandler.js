@@ -11,7 +11,7 @@ function generateToken({ id, name }) {
   // const refreshTokenExp = 60 * 60 * 24 * 7
 
   // for test
-  const accessTokenExp = 5 * 60 // 5 mins for test
+  const accessTokenExp = 1 * 60 // 5 mins for test
   const accessTokenCookieExp = 60 * 60 * 24 * 7 * 1000
   const refreshTokenExp = 60 * 60 * 24 * 7
   const refreshCookieTokenExp = refreshTokenExp * 1000

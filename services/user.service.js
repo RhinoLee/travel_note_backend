@@ -87,6 +87,22 @@ class UserService {
       if (conn) conn.release()
     }
   }
+  async findUserByIdWithAuth(id) {
+    const statement = 'SELECT refresh_token FROM `user_authentications` WHERE user_id = ?;'
+    let conn = null
+    try {
+      conn = await pool.getConnection()
+
+      const [values] = await conn.execute(statement, [id])
+
+      return values
+    } catch (error) {
+      console.log(error)
+      throw error
+    } finally {
+      if (conn) conn.release()
+    }
+  }
   async findUserAvatar(id) {
     const statement = 'SELECT avatar FROM `users` WHERE id = ?;'
     let conn = null
@@ -109,6 +125,7 @@ class UserService {
     return match
   }
   async refreshTokenCompare(token, hashedToken) {
+    console.log('refreshTokenCompare')
     if (!token || !hashedToken) return false
     const match = await bcrypt.compare(token, hashedToken)
     return match
