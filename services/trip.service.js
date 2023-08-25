@@ -76,6 +76,7 @@ class TripService {
     }
   }
   async createTripDayWithDestination({
+    userId,
     trip_id,
     trip_date,
     name,
@@ -91,15 +92,23 @@ class TripService {
     try {
       conn = await pool.getConnection()
       await conn.beginTransaction()
-
-      const tripDayStatement = `
+      // 新增前先找出是否有相同 trip_id(同一旅程) & trip_date（同一天），有相同取 id，無相同就新增
+      const results = await this.getTripDayWithDestination({ userId, trip_id, trip_date })
+      console.log('results', results)
+      let trip_day_id = null
+      if (results.length > 0) {
+        trip_day_id = results[0].id
+      } else {
+        const tripDayStatement = `
         INSERT INTO trip_days(trip_id, trip_date) VALUES(?, ?);
       `
-      const [tripDayResult] = await conn.execute(tripDayStatement, [trip_id, trip_date])
-      const trip_day_id = tripDayResult.insertId || null
+        const [tripDayResult] = await conn.execute(tripDayStatement, [trip_id, trip_date])
+        trip_day_id = tripDayResult.insertId || null
+      }
 
       if (trip_day_id === null) throw Error('trip_day_id not found')
 
+      // 新增目的地資訊
       const destinationStatement = `
         INSERT INTO destinations(name, address, place_id, lat, lng) VALUES(?, ?, ?, ?, ?);
       `
@@ -113,6 +122,7 @@ class TripService {
       const destination_id = destinationResult.insertId || null
       if (destination_id === null) throw new Error('destination_id not found')
 
+      // 新增 tripday 跟 destination 的關聯
       const finalStatement = `
         INSERT INTO tripdays_destinations(trip_day_id, destination_id, arrival_time, leave_time, visit_order) VALUES(?, ?, ?, ?, ?);
       `
@@ -146,7 +156,7 @@ class TripService {
       const statement = `
         SELECT
           td.id, td.arrival_time, td.leave_time, td.visit_order,
-          d.name as name, d.place_id, d.lat, d.lng,
+          d.name as name, d.place_id, d.lat, d.lng, d.id as destination_id,
           t.trip_id, t.trip_date
         FROM tripdays_destinations AS td
         LEFT JOIN destinations AS d
@@ -161,6 +171,24 @@ class TripService {
 
       const [rows] = await conn.execute(statement, [userId, trip_id, trip_date])
       return rows
+    } catch (err) {
+      console.log(err)
+      throw err
+    } finally {
+      if (conn) conn.release()
+    }
+  }
+  async deleteDestination(destination_id) {
+    let conn = null
+
+    try {
+      conn = await pool.getConnection()
+      const statement = `
+        DELETE FROM destinations WHERE id = ?
+      `
+
+      const result = await conn.execute(statement, [destination_id])
+      return result
     } catch (err) {
       console.log(err)
       throw err

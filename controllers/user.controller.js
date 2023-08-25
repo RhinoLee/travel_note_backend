@@ -1,8 +1,8 @@
 const userService = require('../services/user.service')
 const { setAuthCookies, clearAuthCookies } = require('../utils/cookiesHandler')
 const { PROVIDER_GOOGLE, PROVIDER_EMAIL } = require('../config/constants/providerConstants')
-const errorHandler = require('../utils/errorHandlers/userErrorHandler')
 const { uploadImageToGCP, deleteImageFromGCP } = require('../utils/imageHandler')
+const errorHandler = require('../utils/errorHandlers/userErrorHandler')
 const {
   EMAIL_REGISTER_ERROR,
   LOGIN_ERROR,

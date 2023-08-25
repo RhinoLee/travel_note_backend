@@ -1,5 +1,15 @@
 const tripService = require('../services/trip.service')
 const { uploadImageToGCP, deleteImageFromGCP } = require('../utils/imageHandler')
+const errorHandler = require('../utils/errorHandlers/tripsErrorHandler')
+const {
+  CREATE_TRIP_ERROR,
+  GET_TRIPS_ERROR,
+  GET_TRIP_ERROR,
+  CREATE_TRIP_DAY_ERROR,
+  GET_TRIP_DESTINATION_ERROR,
+  UPDATE_TRIP_DESTINATION_ERROR,
+  DELETE_TRIP_DESTINATION_ERROR
+} = require('../config/constants/errorConstants/tripsErrorConstants')
 
 class tripController {
   async create(ctx) {
@@ -26,11 +36,7 @@ class tripController {
         await deleteImageFromGCP(imageUrl)
       }
 
-      ctx.body = {
-        success: false,
-        message: 'create trip failed'
-      }
-      return
+      errorHandler(CREATE_TRIP_ERROR, ctx)
     }
   }
   async list(ctx) {
@@ -48,10 +54,7 @@ class tripController {
         pagination
       }
     } catch (err) {
-      ctx.body = {
-        success: false,
-        message: 'get trips failed'
-      }
+      errorHandler(GET_TRIPS_ERROR, ctx)
     }
   }
   async trip(ctx) {
@@ -66,10 +69,7 @@ class tripController {
         data
       }
     } catch (err) {
-      ctx.body = {
-        success: false,
-        message: 'get trip failed'
-      }
+      errorHandler(GET_TRIP_ERROR, ctx)
     }
   }
   async createTripDayWithDestination(ctx) {
@@ -85,9 +85,11 @@ class tripController {
       leave_time,
       visit_order
     } = ctx.request.body
+    const { userId } = ctx
 
     try {
-      const result = await tripService.createTripDayWithDestination({
+      await tripService.createTripDayWithDestination({
+        userId,
         trip_id,
         trip_date,
         name,
@@ -105,10 +107,7 @@ class tripController {
       }
     } catch (err) {
       console.log('createTripDayWithDestination db error', err)
-      ctx.body = {
-        success: false,
-        message: 'create trip day failed'
-      }
+      errorHandler(CREATE_TRIP_DAY_ERROR, ctx)
     }
   }
   async getTripDayWithDestination(ctx) {
@@ -123,10 +122,7 @@ class tripController {
       }
     } catch (err) {
       console.log('getTripDayWithDestination error', err)
-      ctx.body = {
-        success: false,
-        message: 'get tripday with destination failed'
-      }
+      errorHandler(GET_TRIP_DESTINATION_ERROR, ctx)
     }
   }
   async updateTripDayWithDestination(ctx) {
@@ -156,10 +152,21 @@ class tripController {
       }
     } catch (err) {
       console.log('updateTripDayWithDestination db error', err)
+      errorHandler(UPDATE_TRIP_DESTINATION_ERROR, ctx)
+    }
+  }
+  async deleteDestination(ctx) {
+    const { destination_id } = ctx.request.body
+
+    try {
+      await tripService.deleteDestination(destination_id)
+
       ctx.body = {
-        success: false,
-        message: 'update trip day failed'
+        success: true,
+        data: {}
       }
+    } catch (err) {
+      errorHandler(DELETE_TRIP_DESTINATION_ERROR, ctx)
     }
   }
 }
