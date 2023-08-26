@@ -62,12 +62,30 @@ class TripService {
       conn = await pool.getConnection()
 
       const statement = `
-        SELECT id, name, start_date, end_date FROM trips
+        SELECT id, name, start_date, end_date, image_url FROM trips
         WHERE user_id = ? AND id = ?
       `
       const [rows] = await conn.execute(statement, [userId, trip_id])
 
       return { data: rows[0] }
+    } catch (err) {
+      console.log(err)
+      throw err
+    } finally {
+      if (conn) conn.release()
+    }
+  }
+  async deleteTrip(trip_id, userId) {
+    let conn = null
+
+    try {
+      conn = await pool.getConnection()
+      const statement = `
+        DELETE FROM trips WHERE id = ? AND user_id = ?
+      `
+
+      const result = await conn.execute(statement, [trip_id, userId])
+      return result
     } catch (err) {
       console.log(err)
       throw err

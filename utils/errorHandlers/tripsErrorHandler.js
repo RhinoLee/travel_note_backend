@@ -2,6 +2,7 @@ const {
   CREATE_TRIP_ERROR,
   GET_TRIPS_ERROR,
   GET_TRIP_ERROR,
+  DELETE_TRIP_ERROR,
   CREATE_TRIP_DAY_ERROR,
   GET_TRIP_DESTINATION_ERROR,
   UPDATE_TRIP_DESTINATION_ERROR,
@@ -24,6 +25,10 @@ function errorHandler(err, ctx) {
     case GET_TRIP_ERROR:
       status = 500
       message = 'GET_TRIP_ERROR'
+      break
+    case DELETE_TRIP_ERROR:
+      status = 500
+      message = 'DELETE_TRIP_ERROR'
       break
     case CREATE_TRIP_DAY_ERROR:
       status = 500

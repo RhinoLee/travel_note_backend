@@ -5,6 +5,7 @@ const {
   CREATE_TRIP_ERROR,
   GET_TRIPS_ERROR,
   GET_TRIP_ERROR,
+  DELETE_TRIP_ERROR,
   CREATE_TRIP_DAY_ERROR,
   GET_TRIP_DESTINATION_ERROR,
   UPDATE_TRIP_DESTINATION_ERROR,
@@ -70,6 +71,27 @@ class tripController {
       }
     } catch (err) {
       errorHandler(GET_TRIP_ERROR, ctx)
+    }
+  }
+  async deleteTrip(ctx) {
+    const { trip_id } = ctx.params
+    const { userId } = ctx
+
+    try {
+      // 先找出 trip image 並刪除 google cloud storage 圖檔
+      const { data } = await tripService.getTrip({ userId, trip_id })
+      if (data.image_url) {
+        deleteImageFromGCP(data.image_url)
+      }
+
+      await tripService.deleteTrip(trip_id, userId)
+
+      ctx.body = {
+        success: true,
+        data: {}
+      }
+    } catch (err) {
+      errorHandler(DELETE_TRIP_ERROR, ctx)
     }
   }
   async createTripDayWithDestination(ctx) {

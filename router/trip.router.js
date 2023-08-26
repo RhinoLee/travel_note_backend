@@ -6,6 +6,7 @@ const tripRouter = new KoaRouter({ prefix: '/trip' })
 
 tripRouter.post('/', verifyToken, upload.single('tripImage'), validateTrip, tripController.create)
 tripRouter.post('/:trip_id', verifyToken, tripController.createTripDayWithDestination)
+tripRouter.delete('/:trip_id', verifyToken, tripController.deleteTrip)
 tripRouter.get('/list', verifyToken, tripController.list)
 tripRouter.get('/', verifyToken, tripController.trip)
 tripRouter.get('/:trip_id/:trip_date', verifyToken, tripController.getTripDayWithDestination)
