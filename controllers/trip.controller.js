@@ -95,34 +95,36 @@ class tripController {
     }
   }
   async createTripDayWithDestination(ctx) {
-    const {
-      trip_id,
-      trip_date,
-      name,
-      address,
-      place_id,
-      lat,
-      lng,
-      arrival_time,
-      leave_time,
-      visit_order
-    } = ctx.request.body
+    // 將 request body 統一成 Array 格式
+    if (!Array.isArray(ctx.request.body)) {
+      ctx.request.body = [ctx.request.body]
+    }
+
     const { userId } = ctx
+    const { trip_id, trip_date } = ctx.request.body[0]
+    // 先看資料庫是否有當日資料（trip_days table），沒有則新增一筆
+    const results = await tripService.getTripDay({ trip_id, trip_date })
+    let trip_day_id = null
+    if (results.length === 0) {
+      const data = await tripService.createTripDay({ trip_id, trip_date })
+      trip_day_id = data.trip_day_id
+    } else {
+      trip_day_id = results[0].id
+    }
+
+    const requestData = ctx.request.body.map((place) => ({
+      ...place,
+      userId,
+      trip_day_id
+    }))
 
     try {
-      await tripService.createTripDayWithDestination({
-        userId,
-        trip_id,
-        trip_date,
-        name,
-        address,
-        place_id,
-        lat,
-        lng,
-        arrival_time,
-        leave_time,
-        visit_order
+      // 新增當日目的地
+      const promises = requestData.map(async (place) => {
+        return tripService.createTripDayWithDestination(place)
       })
+
+      await Promise.all(promises)
 
       ctx.body = {
         success: true
@@ -149,18 +151,18 @@ class tripController {
   }
   async updateTripDayWithDestination(ctx) {
     /**
-     * @id - tripdays_destinations table id
+     * @tripdays_destinations_id - tripdays_destinations table id
      * @trip_id - trips table id
      * @destination_id - destination table id
      */
-    const { trip_id, id } = ctx.params
+    const { trip_id, tripdays_destinations_id } = ctx.params
     const { arrival_time, leave_time, name, trip_date } = ctx.request.body
     const { userId } = ctx
 
     try {
       const data = await tripService.updateTripDayWithDestination({
         trip_id,
-        id,
+        tripdays_destinations_id,
         arrival_time,
         leave_time,
         name,
@@ -178,17 +180,30 @@ class tripController {
     }
   }
   async deleteDestination(ctx) {
-    const { destination_id } = ctx.request.body
+    const { tripdays_destinations_id } = ctx.params
 
     try {
-      await tripService.deleteDestination(destination_id)
+      await tripService.deleteDestination(tripdays_destinations_id)
 
       ctx.body = {
         success: true,
         data: {}
       }
     } catch (err) {
+      console.log('deleteDestination error:', err)
       errorHandler(DELETE_TRIP_DESTINATION_ERROR, ctx)
+    }
+  }
+  async deleteDestinationWithTripDayId(userId, trip_id, trip_date) {
+    try {
+      // 用 trip_id & date 找出 trip_day_id
+      const data = await tripService.getTripDayWithDestination({ userId, trip_id, trip_date })
+      if (data.length > 0) {
+        await tripService.deleteDestinationWithTripDayId(data[0].trip_day_id)
+      }
+    } catch (err) {
+      console.log('deleteDestinationWithTripDayId error:', err)
+      throw err
     }
   }
 }

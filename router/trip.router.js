@@ -10,10 +10,16 @@ tripRouter.delete('/:trip_id', verifyToken, tripController.deleteTrip)
 tripRouter.get('/list', verifyToken, tripController.list)
 tripRouter.get('/', verifyToken, tripController.trip)
 tripRouter.get('/:trip_id/:trip_date', verifyToken, tripController.getTripDayWithDestination)
-/**
- * @id - tripdays_destinations table id
- */
-tripRouter.put('/:trip_id/:id', verifyToken, tripController.updateTripDayWithDestination)
-tripRouter.delete('/destination', verifyToken, tripController.deleteDestination)
+
+tripRouter.put(
+  '/:trip_id/:tripdays_destinations_id',
+  verifyToken,
+  tripController.updateTripDayWithDestination
+)
+tripRouter.delete(
+  '/destination/:tripdays_destinations_id',
+  verifyToken,
+  tripController.deleteDestination
+)
 
 module.exports = tripRouter

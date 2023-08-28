@@ -10,6 +10,7 @@ const {
 } = require('../../config/constants/errorConstants/tripsErrorConstants')
 
 function errorHandler(err, ctx) {
+  console.log('errorHandler err: ', err)
   let status = 400
   let message = ''
 

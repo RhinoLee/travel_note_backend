@@ -80,6 +80,10 @@ class TripService {
 
     try {
       conn = await pool.getConnection()
+
+      // 先找出 trip 關聯的 destinations 刪除
+
+      // 刪除 trip
       const statement = `
         DELETE FROM trips WHERE id = ? AND user_id = ?
       `
@@ -93,10 +97,26 @@ class TripService {
       if (conn) conn.release()
     }
   }
+  async createTripDay({ trip_id, trip_date }) {
+    let conn = null
+    try {
+      conn = await pool.getConnection()
+      const tripDayStatement = `
+          INSERT INTO trip_days(trip_id, trip_date) VALUES(?, ?);
+        `
+      const [tripDayResult] = await conn.execute(tripDayStatement, [trip_id, trip_date])
+      const trip_day_id = tripDayResult.insertId ?? null
+
+      return { trip_day_id }
+    } catch (err) {
+      console.log('createTripDate err: ', err)
+      throw err
+    } finally {
+      if (conn) conn.release()
+    }
+  }
   async createTripDayWithDestination({
-    userId,
-    trip_id,
-    trip_date,
+    trip_day_id,
     name,
     address,
     place_id,
@@ -110,36 +130,30 @@ class TripService {
     try {
       conn = await pool.getConnection()
       await conn.beginTransaction()
-      // 新增前先找出是否有相同 trip_id(同一旅程) & trip_date（同一天），有相同取 id，無相同就新增
-      const results = await this.getTripDayWithDestination({ userId, trip_id, trip_date })
-      console.log('results', results)
-      let trip_day_id = null
-      if (results.length > 0) {
-        trip_day_id = results[0].id
-      } else {
-        const tripDayStatement = `
-        INSERT INTO trip_days(trip_id, trip_date) VALUES(?, ?);
+      let destination_id = null
+      // 先查看資料庫是否已經有存在的 place_id，沒有則新增
+      const statement = `
+        SELECT id FROM destinations WHERE place_id = ?;
       `
-        const [tripDayResult] = await conn.execute(tripDayStatement, [trip_id, trip_date])
-        trip_day_id = tripDayResult.insertId || null
+      const [rows] = await conn.execute(statement, [place_id])
+      if (rows.length > 0) {
+        destination_id = rows[0].id
+      } else {
+        // 資料庫找不到這筆 place_id -> 新增目的地資訊
+        const destinationStatement = `
+          INSERT INTO destinations(name, address, place_id, lat, lng) VALUES(?, ?, ?, ?, ?);
+        `
+        const [destinationResult] = await conn.execute(destinationStatement, [
+          name,
+          address,
+          place_id,
+          lat,
+          lng
+        ])
+        destination_id = destinationResult.insertId ?? null
       }
 
-      if (trip_day_id === null) throw Error('trip_day_id not found')
-
-      // 新增目的地資訊
-      const destinationStatement = `
-        INSERT INTO destinations(name, address, place_id, lat, lng) VALUES(?, ?, ?, ?, ?);
-      `
-      const [destinationResult] = await conn.execute(destinationStatement, [
-        name,
-        address,
-        place_id,
-        lat,
-        lng
-      ])
-      const destination_id = destinationResult.insertId || null
       if (destination_id === null) throw new Error('destination_id not found')
-
       // 新增 tripday 跟 destination 的關聯
       const finalStatement = `
         INSERT INTO tripdays_destinations(trip_day_id, destination_id, arrival_time, leave_time, visit_order) VALUES(?, ?, ?, ?, ?);
@@ -166,6 +180,25 @@ class TripService {
       if (conn) conn.release()
     }
   }
+  async getTripDay({ trip_id, trip_date }) {
+    let conn = null
+    try {
+      conn = await pool.getConnection()
+
+      const statement = `
+        SELECT id FROM trip_days
+        WHERE trip_id = ? AND trip_date = ?
+      `
+
+      const [rows] = await conn.execute(statement, [trip_id, trip_date])
+      return rows
+    } catch (err) {
+      console.log(err)
+      throw err
+    } finally {
+      if (conn) conn.release()
+    }
+  }
   async getTripDayWithDestination({ userId, trip_id, trip_date }) {
     let conn = null
     try {
@@ -175,7 +208,7 @@ class TripService {
         SELECT
           td.id, td.arrival_time, td.leave_time, td.visit_order,
           d.name as name, d.place_id, d.lat, d.lng, d.id as destination_id,
-          t.trip_id, t.trip_date
+          t.trip_id, t.trip_date, t.id as trip_day_id
         FROM tripdays_destinations AS td
         LEFT JOIN destinations AS d
         ON td.destination_id = d.id
@@ -196,19 +229,40 @@ class TripService {
       if (conn) conn.release()
     }
   }
-  async deleteDestination(destination_id) {
+  async deleteDestination(tripdays_destinations_id) {
     let conn = null
 
     try {
       conn = await pool.getConnection()
+
       const statement = `
-        DELETE FROM destinations WHERE id = ?
+        DELETE FROM tripdays_destinations WHERE id = ?
       `
 
-      const result = await conn.execute(statement, [destination_id])
+      const result = await conn.execute(statement, [tripdays_destinations_id])
+      console.log('result', result)
       return result
     } catch (err) {
-      console.log(err)
+      console.log('deleteDestination service err: ', err)
+      throw err
+    } finally {
+      if (conn) conn.release()
+    }
+  }
+  async deleteDestinationWithTripDayId(trip_day_id) {
+    let conn = null
+
+    try {
+      conn = await pool.getConnection()
+
+      const statement = `
+        DELETE FROM tripdays_destinations WHERE trip_day_id = ?
+      `
+
+      const result = await conn.execute(statement, [trip_day_id])
+      return result
+    } catch (err) {
+      console.log('deleteDestination service err: ', err)
       throw err
     } finally {
       if (conn) conn.release()
@@ -236,7 +290,7 @@ class TripService {
   async updateTripDayWithDestination({
     userId,
     trip_id,
-    id,
+    tripdays_destinations_id,
     arrival_time,
     leave_time,
     trip_date,
@@ -254,8 +308,12 @@ class TripService {
         WHERE id = ?;
       `
 
-      conn.execute(tripDayDestinationStatement, [arrival_time, leave_time, id])
-      const { data } = await this.getTripDayAndDestinationId(id)
+      conn.execute(tripDayDestinationStatement, [
+        arrival_time,
+        leave_time,
+        tripdays_destinations_id
+      ])
+      const { data } = await this.getTripDayAndDestinationId(tripdays_destinations_id)
       const { trip_day_id, destination_id } = data
 
       const destinationStatement = `

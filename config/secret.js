@@ -18,6 +18,9 @@ const GOOGLE_CLIENT_ID = fs
 const GOOGLE_CLIENT_SECRET = fs
   .readFileSync(path.resolve(__dirname, './keys/google_client_secret.key'), 'utf-8')
   .trim()
+const GOOGLE_MAPS_API_KEY = fs
+  .readFileSync(path.resolve(__dirname, './keys/google_maps_api.key'), 'utf-8')
+  .trim()
 
 module.exports = {
   PRIVATE_KEY,
@@ -26,5 +29,6 @@ module.exports = {
   OPENAI_ORG_KEY,
   GCP_BUCKET_NAME,
   GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_MAPS_API_KEY
 }
