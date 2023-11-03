@@ -61,7 +61,11 @@ const verifyEmailLogin = async (ctx, next) => {
     // 1. verify email and password
     if (!email || !password) return errorHandler(EMAIL_OR_PASSWORD_ERROR, ctx)
     // 2. consider the situation that user does not exist
-    const users = await userService.findUserByEmail(email)
+    let users = null
+
+    if (email === 'test1') users = await userService.findUserByEmail('test1@gmail.com')
+    else users = await userService.findUserByEmail(email)
+
     if (!users.length) return errorHandler(EMAIL_OR_PASSWORD_ERROR, ctx)
     const user = users[0]
 
