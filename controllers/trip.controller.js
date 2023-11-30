@@ -102,15 +102,9 @@ class tripController {
 
     const { userId } = ctx
     const { trip_id, trip_date } = ctx.request.body[0]
-    // 先看資料庫是否有當日資料（trip_days table），沒有則新增一筆
-    const results = await tripService.getTripDay({ trip_id, trip_date })
-    let trip_day_id = null
-    if (results.length === 0) {
-      const data = await tripService.createTripDay({ trip_id, trip_date })
-      trip_day_id = data.trip_day_id
-    } else {
-      trip_day_id = results[0].id
-    }
+
+    const trip_day_id = await this.#createTripdayIfNotExisted({ trip_id, trip_date })
+    if (trip_day_id === null) throw Error()
 
     const requestData = ctx.request.body.map((place) => ({
       ...place,
@@ -160,14 +154,17 @@ class tripController {
     const { userId } = ctx
 
     try {
+      const trip_day_id = await this.#createTripdayIfNotExisted({ trip_id, trip_date })
+      if (trip_day_id === null) throw Error()
+
       const data = await tripService.updateTripDayWithDestination({
         trip_id,
         tripdays_destinations_id,
         arrival_time,
         leave_time,
-        name,
         trip_date,
-        userId
+        userId,
+        trip_day_id
       })
 
       ctx.body = {
@@ -205,6 +202,25 @@ class tripController {
       console.log('deleteDestinationWithTripDayId error:', err)
       throw err
     }
+  }
+  /**
+   * @trip_id 整趟旅程 id
+   * @trip_date 整趟旅程其中一天的日期
+   * @description 先看資料庫是否有當日資料（trip_days table），沒有則新增一筆 trip_day
+   *
+   **/
+  async #createTripdayIfNotExisted({ trip_id, trip_date }) {
+    const results = await tripService.getTripDay({ trip_id, trip_date })
+    let trip_day_id = null
+
+    if (results.length === 0) {
+      const data = await tripService.createTripDay({ trip_id, trip_date })
+      trip_day_id = data.trip_day_id
+    } else {
+      trip_day_id = results[0].id
+    }
+
+    return trip_day_id
   }
 }
 

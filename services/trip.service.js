@@ -294,7 +294,7 @@ class TripService {
     arrival_time,
     leave_time,
     trip_date,
-    name
+    trip_day_id
   }) {
     let conn = null
 
@@ -304,33 +304,16 @@ class TripService {
 
       const tripDayDestinationStatement = `
         UPDATE tripdays_destinations
-        SET arrival_time = ?, leave_time = ?
+        SET arrival_time = ?, leave_time = ?, trip_day_id = ?
         WHERE id = ?;
       `
 
       conn.execute(tripDayDestinationStatement, [
         arrival_time,
         leave_time,
+        trip_day_id,
         tripdays_destinations_id
       ])
-      const { data } = await this.getTripDayAndDestinationId(tripdays_destinations_id)
-      const { trip_day_id, destination_id } = data
-
-      const destinationStatement = `
-        UPDATE destinations
-        SET name = ?
-        WHERE id = ?
-      `
-
-      conn.execute(destinationStatement, [name, destination_id])
-
-      const tripDayStatement = `
-        UPDATE trip_days
-        SET trip_date = ?
-        WHERE id = ?
-      `
-
-      conn.execute(tripDayStatement, [trip_date, trip_day_id])
 
       await conn.commit()
 
