@@ -16,7 +16,8 @@ class openAIController {
     try {
       // gpt prompt
       const completion = await openai.createChatCompletion({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-3.5-turbo-1106',
+        response_format: { type: 'json_object' },
         messages: [
           {
             role: 'system',
